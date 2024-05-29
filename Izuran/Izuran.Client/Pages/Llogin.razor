@@ -1,0 +1,51 @@
+﻿@page "/login"
+@using System.Net
+@inject HttpClient http
+@inject IJSRuntime js
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager navManager
+
+@rendermode InteractiveWebAssembly
+@*@rendermode @(new InteractiveWebAssemblyRenderMode (prerender: false))*@
+@attribute [StreamRendering]
+
+
+<div class="row">
+	<div class="col-lg-4 offset-lg-4 pt-4 pb-4 border">
+		<div class="mb-3 text-center">
+			<h3>Login</h3>
+		</div>
+		<div class="mb-3">
+			<lable>User Name</lable>
+			<input @bind="loginRequest.UserName" class =" from-control" placeholder="User Nmae"/>
+		</div>
+		<div class="mb-3">
+			<lable>Password</lable>
+			<input @bind="loginRequest.Password" type= "password" class=" from-control" placeholder="Password" />
+		</div>
+		<div class="mb-3 d-grid gap-2">
+			<button @onclick ="Authenticate" class=" btn btn-primary">Login</button>
+		</div>
+	</div>
+</div>
+
+@code {
+	private LoginRequest loginRequest = new LoginRequest();
+	private async Task Authenticate()
+	{
+		var LoginResponse = await http.PostAsJsonAsync<LoginRequest>("api/login", loginRequest);
+		if(LoginResponse.IsSuccessStatusCode)
+		{
+			var userSession = await LoginResponse.Content.ReadFromJsonAsync<UserSession>();
+			var customAuthStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
+			await customAuthStateProvider.UpdateAuthenticationState(userSession);
+			navManager.NavigateTo("/items", true);
+		}
+		else if (LoginResponse.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			await js.InvokeVoidAsync("alert", "Invalid User Name or Password");
+			return;
+		}
+
+	}
+}

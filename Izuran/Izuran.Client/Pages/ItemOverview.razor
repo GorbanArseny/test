@@ -1,0 +1,42 @@
+﻿@page "/items"
+@inject HttpClient Http
+@rendermode @(new InteractiveWebAssemblyRenderMode (prerender: false))
+@attribute [StreamRendering]
+<h3>ItemOverview</h3>
+<PageTitle>Items</PageTitle>
+
+<h1>Items</h1>
+
+<p>This component demonstrates showing data.</p>
+
+@if (qItems == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div style="width:1600px;">
+		<FluentDataGrid Id="weathergrid" Items="@qItems" Pagination="@pagination" GridTemplateColumns="2fr 2fr 1fr 1fr" TGridItem="Item">
+			<PropertyColumn Title="Идент." Property="@(c => c!.IDRef)" Align="Align.Start" />
+			<PropertyColumn Title="Наменование" Sortable=true Property="@(c => c!.Name)" Align="Align.Center" InitialSortDirection="SortDirection.Ascending" IsDefaultSortColumn=true />
+			<PropertyColumn Title="Дата" Sortable=true Property="@(c => c!.Date)" Align="Align.Center" />
+			<PropertyColumn Title="Group" Property="@(c => c!.Group)" Align="Align.End" />
+		</FluentDataGrid>
+
+		<FluentPaginator State="@pagination" />
+    </div>
+    
+}
+
+@code {
+    private IQueryable<Item>? qItems ;
+    PaginationState pagination = new PaginationState { ItemsPerPage = 20 };
+    protected override async Task OnInitializedAsync()
+    {
+
+        var result = await Http.GetFromJsonAsync<List<Item>>("api/items"); //https://localhost:7054/api/items
+        if (result is not null)
+            qItems = result.AsQueryable();
+    }
+    
+} 

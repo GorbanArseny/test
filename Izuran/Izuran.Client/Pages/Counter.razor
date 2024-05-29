@@ -1,0 +1,48 @@
+﻿@page "/counter"
+@rendermode InteractiveWebAssembly
+@inject IJSRuntime js
+
+
+
+<PageTitle>Counter</PageTitle>
+<CascadingAuthenticationState>
+<AuthorizeView>
+    <Authorized>
+        <h1>Hello, @context.User.Identity.Name!</h1>
+    </Authorized>
+    <NotAuthorized>
+        <h1>Hello, Guest!</h1>
+    </NotAuthorized>
+</AuthorizeView>
+
+<AuthorizeView>
+    <Authorized>
+        <br /><br />
+        <button class="btn btn-outline-primary" @onclick="DysplayGreetingAlert">DisplayGreetingAlert</button>
+    </Authorized>
+</AuthorizeView>
+</CascadingAuthenticationState>
+<div role="status" style="padding-bottom: 1em;">
+    Current count: <FluentBadge Appearance="Appearance.Neutral">@currentCount</FluentBadge>
+</div>
+
+<FluentButton Appearance="Appearance.Accent" @onclick="IncrementCount">Click me</FluentButton>
+
+    @code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState{ get; set; }
+
+    private async Task DysplayGreetingAlert()
+    {
+        var authState = await authenticationState;
+        var message = $"Hello{authState.User.Identity.Name}";
+        await js.InvokeVoidAsync("alert", message);
+    }
+}
